@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Analyzer Python</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">SEO + GEO Analyzer</h1>
+            <p class="text-gray-600">Analyze websites for SEO performance and AI visibility</p>
+        </div>
+
+        <!-- URL Input Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <form id="analyzeForm" class="flex gap-4">
+                <input
+                    type="url"
+                    id="urlInput"
+                    placeholder="Enter website URL (e.g., https://example.com)"
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                >
+                <button
+                    type="submit"
+                    id="analyzeBtn"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span id="btnText">Analyze</span>
+                    <div id="loadingSpinner" class="hidden inline-block ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <!-- Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">SEO Score</p>
+                            <p id="seoScore" class="text-3xl font-bold text-gray-900">-</p>
+                        </div>
+                        <div id="seoIcon" class="text-2xl">📊</div>
+                    </div>
+                    <div id="seoBar" class="mt-3 bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">GEO Score</p>
+                            <p id="geoScore" class="text-3xl font-bold text-gray-900">-</p>
+                        </div>
+                        <div id="geoIcon" class="text-2xl">🤖</div>
+                    </div>
+                    <div id="geoBar" class="mt-3 bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Technical</p>
+                            <p id="technicalScore" class="text-3xl font-bold text-gray-900">-</p>
+                        </div>
+                        <div id="technicalIcon" class="text-2xl">⚙️</div>
+                    </div>
+                    <div id="technicalBar" class="mt-3 bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">AI Visibility</p>
+                            <p id="aiScore" class="text-3xl font-bold text-gray-900">-</p>
+                        </div>
+                        <div id="aiIcon" class="text-2xl">🎯</div>
+                    </div>
+                    <div id="aiBar" class="mt-3 bg-gray-200 rounded-full h-2">
+                        <div class="bg-orange-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Info -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Page Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">URL</p>
+                        <p id="pageUrl" class="font-medium break-all">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Title</p>
+                        <p id="pageTitle" class="font-medium">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Load Time</p>
+                        <p id="loadTime" class="font-medium">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Word Count</p>
+                        <p id="wordCount" class="font-medium">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issues List -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Issues Found</h2>
+                <div id="issuesList" class="space-y-3">
+                    <!-- Issues will be populated here -->
+                </div>
+            </div>
+
+            <!-- AI Summary -->
+            <div id="aiSummarySection" class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">AI Analysis Summary</h2>
+                <p id="aiSummary" class="text-gray-700">-</p>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Analysis Failed</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('analyzeForm');
+        const urlInput = document.getElementById('urlInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const results = document.getElementById('results');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Score elements
+        const seoScore = document.getElementById('seoScore');
+        const geoScore = document.getElementById('geoScore');
+        const technicalScore = document.getElementById('technicalScore');
+        const aiScore = document.getElementById('aiScore');
+
+        // Progress bars
+        const seoBar = document.getElementById('seoBar').firstElementChild;
+        const geoBar = document.getElementById('geoBar').firstElementChild;
+        const technicalBar = document.getElementById('technicalBar').firstElementChild;
+        const aiBar = document.getElementById('aiBar').firstElementChild;
+
+        // Page info
+        const pageUrl = document.getElementById('pageUrl');
+        const pageTitle = document.getElementById('pageTitle');
+        const loadTime = document.getElementById('loadTime');
+        const wordCount = document.getElementById('wordCount');
+
+        // Issues and summary
+        const issuesList = document.getElementById('issuesList');
+        const aiSummary = document.getElementById('aiSummary');
+
+        function showLoading() {
+            analyzeBtn.disabled = true;
+            btnText.textContent = 'Analyzing...';
+            loadingSpinner.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            analyzeBtn.disabled = false;
+            btnText.textContent = 'Analyze';
+            loadingSpinner.classList.add('hidden');
+        }
+
+        function showResults() {
+            results.classList.remove('hidden');
+            error.classList.add('hidden');
+        }
+
+        function showError(message) {
+            error.classList.remove('hidden');
+            results.classList.add('hidden');
+            errorMessage.textContent = message;
+        }
+
+        function updateScore(element, bar, score) {
+            element.textContent = score;
+            bar.style.width = `${score}%`;
+
+            // Color coding
+            if (score >= 80) {
+                bar.className = bar.className.replace(/bg-\w+-600/, 'bg-green-600');
+            } else if (score >= 60) {
+                bar.className = bar.className.replace(/bg-\w+-600/, 'bg-yellow-600');
+            } else {
+                bar.className = bar.className.replace(/bg-\w+-600/, 'bg-red-600');
+            }
+        }
+
+        function createIssueElement(issue) {
+            const div = document.createElement('div');
+            div.className = `p-4 rounded-lg border-l-4 ${
+                issue.type === 'critical' ? 'border-red-500 bg-red-50' :
+                issue.type === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+            }`;
+
+            div.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center justify-center h-8 w-8 rounded-full ${
+                            issue.type === 'critical' ? 'bg-red-100 text-red-600' :
+                            issue.type === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                            'bg-blue-100 text-blue-600'
+                        }">
+                            ${issue.type === 'critical' ? '❌' : issue.type === 'medium' ? '⚠️' : 'ℹ️'}
+                        </span>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h4 class="text-sm font-medium text-gray-900">${issue.title}</h4>
+                        <p class="mt-1 text-sm text-gray-700">${issue.description}</p>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = urlInput.value.trim();
+
+            if (!url) return;
+
+            showLoading();
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Analysis failed');
+                }
+
+                // Update scores
+                updateScore(seoScore, seoBar, data.scores.seo);
+                updateScore(geoScore, geoBar, data.scores.geo);
+                updateScore(technicalScore, technicalBar, data.scores.technical);
+                updateScore(aiScore, aiBar, data.scores.ai_visibility);
+
+                // Update page info
+                pageUrl.textContent = data.normalized_url;
+                pageTitle.textContent = data.title || 'No title found';
+                loadTime.textContent = `${data.load_time_ms}ms`;
+                wordCount.textContent = data.seo_analysis.word_count;
+
+                // Update issues
+                issuesList.innerHTML = '';
+                if (data.issues && data.issues.length > 0) {
+                    data.issues.forEach(issue => {
+                        issuesList.appendChild(createIssueElement(issue));
+                    });
+                } else {
+                    issuesList.innerHTML = '<p class="text-gray-500">No issues found! 🎉</p>';
+                }
+
+                // Update AI summary
+                aiSummary.textContent = data.ai_summary || 'AI summary not available';
+
+                showResults();
+
+            } catch (err) {
+                showError(err.message || 'An error occurred during analysis');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Initialize with hidden results
+        results.classList.add('hidden');
+        error.classList.add('hidden');
+    </script>
+</body>
+</html>
